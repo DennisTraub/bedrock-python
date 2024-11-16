@@ -8,8 +8,7 @@ if TYPE_CHECKING:
 
 class SyncAPIResource:
     _client: Bedrock
-    _region: str
 
-    def __init__(self, client: Bedrock, region: str):
+    def __init__(self, client: Bedrock):
         self._client = client
-        self._region = region
+        self._region = client.region

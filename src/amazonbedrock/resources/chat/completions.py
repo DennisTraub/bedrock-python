@@ -49,7 +49,7 @@ class Completions(SyncAPIResource):
             messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletion:
 
-        model_id = self._client.find_model(model)
+        model_id = self._client.models.retrieve(model)
 
         transformed_messages = []
         for message in messages:
