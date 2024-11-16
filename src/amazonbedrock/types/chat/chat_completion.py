@@ -10,3 +10,4 @@ class Choice(BaseModel):
 
 class ChatCompletion(BaseModel):
     choices: List[Choice]
+    model: str

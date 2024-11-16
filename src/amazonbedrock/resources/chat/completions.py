@@ -16,34 +16,48 @@ def _transform(message: ChatCompletionMessageParam):
         "content": [{"text": user_message["content"]}]
     }
 
+def _create_completion_from(raw_response: Dict, model: str) -> ChatCompletion:
+    responses = raw_response["output"]["message"]["content"]
+    choices = []
+    for response in responses:
+        message = ChatCompletionMessage(content=response.get("text", None))
+        choices.append(Choice(message=message))
+
+    return ChatCompletion(
+        choices=choices,
+        model=model
+    )
+
 
 class Completions(SyncAPIResource):
     def _converse(
             self,
             model: str,
             messages: List[Dict]
-    ) -> ChatCompletion:
-        client = boto3.client("bedrock-runtime", region_name="us-east-1")
+    ) -> Dict:
+        client = boto3.client("bedrock-runtime", region_name=self._region)
         response = client.converse(
             modelId=model,
             messages=messages
         )
 
-        responses = response["output"]["message"]["content"]
-        choices = []
-        for response in responses:
-            message = ChatCompletionMessage(content=response.get("text", None))
-            choices.append(Choice(message=message))
-
-        return ChatCompletion(choices=choices)
+        return response
 
     def create(
             self,
             model: str,
             messages: Iterable[ChatCompletionMessageParam]
     ) -> ChatCompletion:
+
+        model_id = self._client.find_model(model)
+
         transformed_messages = []
         for message in messages:
             transformed_messages.append(_transform(message))
 
-        return self._converse(model, transformed_messages)
+        raw_response = self._converse(model_id, transformed_messages)
+
+        return _create_completion_from(
+            raw_response=raw_response,
+            model=model_id
+        )
